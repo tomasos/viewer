@@ -1,0 +1,21 @@
+.row {
+  padding: 2px;
+  overflow: hidden;
+}
+
+.image {
+  float: left;
+  margin: 2px;
+  background-color: #dddddd;
+  height: 70px;
+  width: 70px;
+}
+
+.modal-body img {
+  width: 550px;
+}
+
+#content {
+  margin: 20%;
+}
+
