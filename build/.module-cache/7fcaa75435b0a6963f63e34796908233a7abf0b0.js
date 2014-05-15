@@ -1,7 +1,7 @@
 /** @jsx React.DOM */
 var request = superagent;
 
-var Modal = React.createClass({
+var Modal = React.createClass({displayName: 'Modal',
     open: function() {
 	$(this.getDOMNode()).modal('show');
     },
@@ -9,24 +9,24 @@ var Modal = React.createClass({
 	$(this.getDOMNode()).modal('hide');
     },
     render: function() {
-	return ( <div className="modal fade">
-		   <div className="modal-dialog">
-		     <div className="modal-content">
-		       <div className="modal-header">
-		         <h3>{this.props.view.data.title}</h3>
-		       </div>
-		         <div className="modal-body">
-		         <img onClick={this.close} src={this.props.view.data.url}></img>
-		       </div>
-		     </div>
-		   </div>
-		 </div>
+	return ( React.DOM.div( {className:"modal fade"}, 
+		   React.DOM.div( {className:"modal-dialog"}, 
+		     React.DOM.div( {className:"modal-content"}, 
+		       React.DOM.div( {className:"modal-header"}, 
+		         React.DOM.h3(null, this.props.view.data.title)
+		       ),
+		         React.DOM.div( {className:"modal-body"}, 
+		         React.DOM.img( {onClick:this.close, src:this.props.view.data.url})
+		       )
+		     )
+		   )
+		 )
 	       );
     }
 });
 
 
-var View = React.createClass({
+var View = React.createClass({displayName: 'View',
     handleClick: function() {
 	var id = this.props.view.data.id;
 	this.props.onClicked(id);
@@ -34,57 +34,54 @@ var View = React.createClass({
     
     render: function() {
 	return (
-		<div className='image'>
-  		  <img onClick={this.handleClick} key={this.props.view.data.id} src={this.props.view.data.thumbnail}></img>
-		</div>
+		React.DOM.div( {className:"image"}, 
+  		  React.DOM.img( {onClick:this.handleClick, key:this.props.view.data.id, src:this.props.view.data.thumbnail})
+		)
 	);
     }
 });
 
-var ViewRow = React.createClass({
+var ViewRow = React.createClass({displayName: 'ViewRow',
     handleClick: function(id) {
 	this.props.onClicked(id);
     },
     render: function() {
 	var views = this.props.group.map(function (view) {
-	    return <View onClicked={this.handleClick} view={view} />;
+	    return View( {onClicked:this.handleClick, view:view} );
 	}.bind(this));
 	
 	return (
-		<div className='row'>
-		  {views}
-		</div>
+		React.DOM.div( {className:"row"}, 
+		  views
+		)
 	);
     }
 });
 
 
-var ViewList = React.createClass({
+var ViewList = React.createClass({displayName: 'ViewList',
     getInitialState: function () {
 	return {
 	    data: [],
 	    currentView: {data: {url: ''}},
-	    count: 0,
-	    lastNode: ''
+	    count: 0
 	};
     },
 
     loadData: function () {
 	console.log('state: ' + this.state.count);
 	request
-	    .get('http://www.reddit.com/r/aww/hot.json?limit=50&count=' + this.state.count + '&after=' + this.state.lastNode)
+	    .get('http://www.reddit.com/r/earthporn/hot.json?limit=50&count=' + this.state.count)
 	    .end(function (res) {
 		var result = res.body.data.children.filter(function (el) {
 		    return el.data.url.indexOf('.jpg') > -1 || el.data.url.indexOf('.gif') > -1 || el.data.url.indexOf('.png') > -1;
 		    });
 		this.setState({data: result,
-			       currentView: res.body.data.children[0],
-			       lastNode: res.body.data.after}
-			     );
+			      currentView: res.body.data.children[0]});
 	    }.bind(this));
     },
     
-    componentDidMount: function () {
+    componentWillMount: function () {
 	this.loadData();
     },
 
@@ -99,14 +96,14 @@ var ViewList = React.createClass({
     previous: function() {
 	var count = this.state.count > 50 ? this.state.count - 50 : 0;
 	this.setState({count: count});
-
+	this.loadData();
     },
 
     next: function() {
 	var count = this.state.count + 50;
 	console.log(count);
 	this.setState({count: count});
-
+	this.loadData();
     },
     
     render: function() {
@@ -120,20 +117,20 @@ var ViewList = React.createClass({
 	}
 
 	var rows = groups.map(function (group) {
-	    return <ViewRow onClicked={this.clickHandler} group={group} />;
+	    return ViewRow( {onClicked:this.clickHandler, group:group} );
 	}.bind(this));
 			      
 	return (
-		<div>
-	 	  {rows}
-	    <a onClick={this.previous}>&lt;</a> <a onClick={this.next}>&gt;</a>
-		  <Modal ref="modal" view={this.state.currentView} />
-		</div>
+		React.DOM.div(null, 
+	 	  rows,
+	    React.DOM.a( {onClick:this.previous}, "<"), " ", React.DOM.a( {onClick:this.next}, ">"),
+		  Modal( {ref:"modal", view:this.state.currentView} )
+		)
 	);
     }
 });
 
 React.renderComponent(
-	<ViewList />,
+	ViewList(null ),
     document.getElementById('content')
 );

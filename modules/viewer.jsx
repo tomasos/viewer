@@ -64,33 +64,28 @@ var ViewList = React.createClass({
 	return {
 	    data: [],
 	    currentView: {data: {url: ''}},
-	    count: 0
+	    count: 0,
+	    lastNode: ''
 	};
     },
 
-    loadData: function () {
+    loadData: function (count) {
 	request
-	    .get('http://www.reddit.com/r/earthporn/hot.json?limit=50&count=' + this.state.count)
+	    .get('http://www.reddit.com/r/funny/hot.json?limit=50&count=' + count + '&after=' + this.state.lastNode)
 	    .end(function (res) {
 		var result = res.body.data.children.filter(function (el) {
 		    return el.data.url.indexOf('.jpg') > -1 || el.data.url.indexOf('.gif') > -1 || el.data.url.indexOf('.png') > -1;
 		    });
 		this.setState({data: result,
-			      currentView: res.body.data.children[0]});
+			       currentView: res.body.data.children[0],
+			       lastNode: res.body.data.after,
+			       count: count}
+			     );
 	    }.bind(this));
     },
     
-    componentWillMount: function () {
-	// request
-	//     .get('http://www.reddit.com/r/earthporn/hot.json?limit=50&count=' + this.state.count)
-	//     .end(function (res) {
-	// 	var result = res.body.data.children.filter(function (el) {
-	// 	    return el.data.url.indexOf('.jpg') > -1 || el.data.url.indexOf('.gif') > -1 || el.data.url.indexOf('.png') > -1;
-	// 	    });
-	// 	this.setState({data: result,
-	// 		      currentView: res.body.data.children[0]});
-	//     }.bind(this));
-	this.loadData();
+    componentDidMount: function () {
+	this.loadData(0);
     },
 
     clickHandler: function(id) {
@@ -103,15 +98,16 @@ var ViewList = React.createClass({
 
     previous: function() {
 	var count = this.state.count > 50 ? this.state.count - 50 : 0;
-	this.setState({count: count});
-	this.loadData();
+	console.log(count);
+	this.loadData(count);
+
     },
 
     next: function() {
 	var count = this.state.count + 50;
 	console.log(count);
-	this.setState({count: count});
-	this.loadData();
+	this.loadData(count);
+
     },
     
     render: function() {
