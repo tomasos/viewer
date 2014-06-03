@@ -109,7 +109,7 @@ var ViewList = React.createClass({
 	this.loadData(count);
 
     },
-    
+
     render: function() {
 	var groups = [[]];
 	var i = 0, j = 5;
