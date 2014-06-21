@@ -93,11 +93,11 @@ var ViewList = React.createClass({
 	};
     },
 
-    loadData: function (count) {
-	var subreddit = this.state.subreddit;
-	var count = this.state.count;
+    loadData: function (count, sub, last) {
+	var subreddit = sub != undefined ? sub: this.state.subreddit;
+	var lastNode = last != undefined ? last : this.state.lastNode;
 	request
-	    .get('http://www.reddit.com/r/' + subreddit + '/hot.json?limit=50')
+	    .get('http://www.reddit.com/r/' + subreddit + '/hot.json?limit=50&count=' + count + '&after=' + lastNode)
 	    .end(function (res) {
 		var result = res.body.data.children.filter(function (el) {
 		    return el.data.url.indexOf('.jpg') > -1 || el.data.url.indexOf('.gif') > -1 || el.data.url.indexOf('.png') > -1;
@@ -105,7 +105,9 @@ var ViewList = React.createClass({
 		this.setState({data: result,
 			       currentView: res.body.data.children[0],
 			       lastNode: res.body.data.after,
-			       count: count}
+			       count: count,
+			       subreddit: subreddit
+			      }
 			     );
 	    }.bind(this));
     },
@@ -138,8 +140,7 @@ var ViewList = React.createClass({
     },
 
     subChangeHandler: function(sub) {
-	this.setState({subreddit: sub});
-	
+	this.loadData(0, sub, '');
     },
 
     render: function() {
