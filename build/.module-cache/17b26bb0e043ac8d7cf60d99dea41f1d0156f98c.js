@@ -41,28 +41,6 @@ var View = React.createClass({displayName: 'View',
     }
 });
 
-var SubChooser = React.createClass({displayName: 'SubChooser',
-    getInitialState: function() {
-	return {subs: ['aww', 'earthporn', 'adviceanimals']};
-    },
-
-    change: function() {
-	this.props.subChanged($(this.refs.subSelect.getDOMNode()).val());
-    },
-
-    render: function() {
-	var options = this.state.subs.map(function(opt) {
-	    return React.DOM.option(null, opt);
-	});
-	
-	return (
-		React.DOM.select( {ref:"subSelect", onChange:this.change}, 
-		  options
-		)
-	);
-    }
-});
-
 var ViewRow = React.createClass({displayName: 'ViewRow',
     handleClick: function(id) {
 	this.props.onClicked(id);
@@ -87,31 +65,27 @@ var ViewList = React.createClass({displayName: 'ViewList',
 	    data: [],
 	    currentView: {data: {url: ''}},
 	    count: 0,
-	    subreddit: 'aww',
-	    lastNode: '',
-	    oldSub: 'aww'
+	    lastNode: ''
 	};
     },
 
-    loadData: function (count) {
-	var subreddit = this.state.subreddit;
-	var count = this.state.count;
+    loadData: function () {
+	console.log('state: ' + this.state.count);
 	request
-	    .get('http://www.reddit.com/r/' + subreddit + '/hot.json?limit=50')
+	    .get('http://www.reddit.com/r/aww/hot.json?limit=50&count=' + this.state.count + '&after=' + this.state.lastNode)
 	    .end(function (res) {
 		var result = res.body.data.children.filter(function (el) {
 		    return el.data.url.indexOf('.jpg') > -1 || el.data.url.indexOf('.gif') > -1 || el.data.url.indexOf('.png') > -1;
 		    });
 		this.setState({data: result,
 			       currentView: res.body.data.children[0],
-			       lastNode: res.body.data.after,
-			       count: count}
+			       lastNode: res.body.data.after}
 			     );
 	    }.bind(this));
     },
     
     componentDidMount: function () {
-	this.loadData(0);
+	this.loadData();
     },
 
 
@@ -126,20 +100,15 @@ var ViewList = React.createClass({displayName: 'ViewList',
     previous: function() {
 	var count = this.state.count > 50 ? this.state.count - 50 : 0;
 	console.log(count);
-	this.loadData(count);
+	this.setState({count: count});
 
     },
 
     next: function() {
 	var count = this.state.count + 50;
 	console.log(count);
-	this.loadData(count);
+	this.setState({count: count});
 
-    },
-
-    subChangeHandler: function(sub) {
-	this.setState({subreddit: sub});
-	
     },
     
     render: function() {
@@ -158,7 +127,6 @@ var ViewList = React.createClass({displayName: 'ViewList',
 			      
 	return (
 		React.DOM.div(null, 
-		  SubChooser( {subChanged:this.subChangeHandler} ),
 	 	  rows,
 	    React.DOM.a( {onClick:this.previous}, "<"), " ", React.DOM.a( {onClick:this.next}, ">"),
 		  Modal( {ref:"modal", view:this.state.currentView} )

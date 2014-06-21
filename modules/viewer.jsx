@@ -88,11 +88,12 @@ var ViewList = React.createClass({
 	    currentView: {data: {url: ''}},
 	    count: 0,
 	    subreddit: 'aww',
+	    lastNode: '',
 	    oldSub: 'aww'
 	};
     },
 
-    loadData: function () {
+    loadData: function (count) {
 	var subreddit = this.state.subreddit;
 	var count = this.state.count;
 	request
@@ -102,12 +103,15 @@ var ViewList = React.createClass({
 		    return el.data.url.indexOf('.jpg') > -1 || el.data.url.indexOf('.gif') > -1 || el.data.url.indexOf('.png') > -1;
 		    });
 		this.setState({data: result,
-			      currentView: res.body.data.children[0]});
+			       currentView: res.body.data.children[0],
+			       lastNode: res.body.data.after,
+			       count: count}
+			     );
 	    }.bind(this));
     },
     
-    componentWillMount: function () {
-	this.loadData();
+    componentDidMount: function () {
+	this.loadData(0);
     },
 
 
@@ -121,20 +125,23 @@ var ViewList = React.createClass({
 
     previous: function() {
 	var count = this.state.count > 50 ? this.state.count - 50 : 0;
-	this.setState({count: count});
+	console.log(count);
+	this.loadData(count);
+
     },
 
     next: function() {
 	var count = this.state.count + 50;
 	console.log(count);
-	this.setState({count: count});
+	this.loadData(count);
+
     },
 
     subChangeHandler: function(sub) {
 	this.setState({subreddit: sub});
 	
     },
-    
+
     render: function() {
 	var groups = [[]];
 	var i = 0, j = 5;
